@@ -5,19 +5,27 @@ from datetime import datetime
 
 # Load inventory from the JSON file
 def load_inventory():
+     with open("data.json", "r") as file:
+            data = json.load(file)
+            # Extract inventory data from the overall data
+            inventory = data.get("inventory", {})
+            return [{"name": name, "quantity": quantity, "date_added": "", "user_id": ""} for name, quantity in inventory.items()]
+    except (FileNotFoundError, json.JSONDecodeError):
+        return []
+
+def save_inventory(inventory_data):
     try:
-        with open("data.json", "r") as file:
-            return json.load(file)
-    except FileNotFoundError:
-        return []
-    except json.JSONDecodeError:
-        return []
-
-# Save inventory to the JSON file
-def save_inventory(data):
-    with open("data.json", "w") as file:
-        json.dump(data, file)
-
+        with open("data.json", "r+") as file:
+            data = json.load(file)
+            # Update the inventory in the overall data
+            data["inventory"] = {item["name"]: item["quantity"] for item in inventory_data}
+            file.seek(0)
+            json.dump(data, file, indent=4)
+            file.truncate()
+    except (FileNotFoundError, json.JSONDecodeError):
+        data = {"inventory": {item["name"]: item["quantity"] for item in inventory_data}}
+        with open("data.json", "w") as file:
+            json.dump(data, file, indent=4)
 # Function to add an item to the inventory
 def add_item(inventory_window, tree):
     def submit():
